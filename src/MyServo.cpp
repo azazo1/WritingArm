@@ -33,12 +33,16 @@ MyServo::~MyServo() {
     ledcDetachPin(pin);
 }
 
+int MyServo::getCurrentDegree() const {
+    return currentDegree;
+}
+
 LimitedServo::LimitedServo(const int channel, const int pin): MyServo(channel, pin) {
 }
 
 LimitedServo::LimitedServo(const int channel, const int pin, const int minDegree,
-                           const int maxDegree)
-    : MyServo(channel, pin), minDegree(minDegree), maxDegree(maxDegree) {
+                           const int maxDegree, const LimitedMode mode)
+    : MyServo(channel, pin), minDegree(minDegree), maxDegree(maxDegree), mode(mode) {
 }
 
 void LimitedServo::setMaxDegree(const int degree) {

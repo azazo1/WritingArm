@@ -21,6 +21,9 @@ public:
     virtual void setDegree(int degree);
 
     virtual ~MyServo();
+
+    /// 获取当前的角度值.
+    int getCurrentDegree() const;
 };
 
 enum LimitedMode {
@@ -42,7 +45,7 @@ class LimitedServo final : public MyServo {
 public:
     LimitedServo(int channel, int pin);
 
-    LimitedServo(int channel, int pin, int minDegree, int maxDegree);
+    LimitedServo(int channel, int pin, int minDegree, int maxDegree, LimitedMode mode);
 
     /// 会确保 maxDegree 大于等于 minDegree.
     void setMaxDegree(int degree);
