@@ -37,7 +37,7 @@ void setup() {
     Serial.begin(9600);
 
     WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
-    double radius = 42;
+    double radius = 70;
     double theta = 90;
     double z = PAPER_Z + 60;
     arm.moveToPolar(theta, radius, z);
@@ -52,15 +52,15 @@ void setup() {
     View::setFont(FONT_DATA);
     display.setFont(FONT_DATA);
 
-    auto lf1 = LabeledFrame(String("Z ") + z);
+    auto lf1 = LabeledFrame(String("Beta ") + arm.getDegree(2));
     auto sb1 = Seekbar();
-    sb1.setMin(-60);
-    sb1.setMax(100);
-    sb1.setCurrent(static_cast<int16_t>(z));
-    sb1.setOnChangeListener([&lf1, &arm, &theta,&radius, &z](const int16_t val) {
-        lf1.setTitle(String("Z ") + val);
-        z = val;
-        arm.moveToPolar(theta, radius, z);
+    sb1.setMin(600);
+    sb1.setMax(10000);
+    sb1.setCurrent(static_cast<int16_t>(arm.getDegree(2) * 100.0));
+    sb1.setOnChangeListener([&lf1, &arm](const int16_t val) {
+        const double beta = val * 0.01;
+        lf1.setTitle(String("Beta ") + beta);
+        arm.setDegree(-1, -1, beta);
         Serial.print(arm.getDegree(0));
         Serial.print(" ");
         Serial.print(arm.getDegree(1));
@@ -71,23 +71,17 @@ void setup() {
         scheduler.addSchedule(
             (new SequenceSchedulable())
             ->then(new ScalaTransition(
-                50, 180, 10000, &linearMapping, [&](const int16_t val) {
-                    arm.moveToPolar(theta, val, z);
-                    // Serial.print(arm.getDegree(0));
-                    // Serial.print(" ");
-                    // Serial.print(arm.getDegree(1));
-                    // Serial.print(" ");
-                    // Serial.println(arm.getDegree(2));
+                6, 60, 30000, &linearMapping, [&](const double val) {
+                    const double beta = val;
+                    lf1.setTitle(String("Beta ") + beta);
+                    arm.setDegree(-1, -1, beta);
                     return true;
                 }))
             ->then(new ScalaTransition(
-                180, 50, 10000, &linearMapping, [&](const int16_t val) {
-                    arm.moveToPolar(theta, val, z);
-                    // Serial.print(arm.getDegree(0));
-                    // Serial.print(" ");
-                    // Serial.print(arm.getDegree(1));
-                    // Serial.print(" ");
-                    // Serial.println(arm.getDegree(2));
+                60, 6, 30000, &linearMapping, [&](const int16_t val) {
+                    const double beta = val;
+                    lf1.setTitle(String("Beta ") + beta);
+                    arm.setDegree(-1, -1, beta);
                     return true;
                 }))
         );

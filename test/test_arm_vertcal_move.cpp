@@ -3,7 +3,6 @@
 //
 #include <Arduino.h>
 #include <conversion.h>
-#include <MyServo.h>
 #include <WritingArm.h>
 #include <event/ButtonEvent.h>
 #include <event/KnobEvent.h>
@@ -65,11 +64,11 @@ void setup() {
         lf1.setTitle(String("Z ") + val);
         z = val;
         arm.moveToPolar(theta, radius, z);
-        Serial.print(arm.getDegree(0));
-        Serial.print(" ");
-        Serial.print(arm.getDegree(1));
-        Serial.print(" ");
-        Serial.println(arm.getDegree(2));
+        // Serial.print(arm.getDegree(0));
+        // Serial.print(" ");
+        // Serial.print(arm.getDegree(1));
+        // Serial.print(" ");
+        // Serial.println(arm.getDegree(2));
     });
     sb1.setOnConfirmListener([&](const int16_t) {
         scheduler.addSchedule(
@@ -77,21 +76,21 @@ void setup() {
             ->then(new ScalaTransition(
                 50, 180, 10000, &linearMapping, [&](const int16_t val) {
                     arm.moveToPolar(theta, val, z);
-                    Serial.print(arm.getDegree(0));
-                    Serial.print(" ");
-                    Serial.print(arm.getDegree(1));
-                    Serial.print(" ");
-                    Serial.println(arm.getDegree(2));
+                    // Serial.print(arm.getDegree(0));
+                    // Serial.print(" ");
+                    // Serial.print(arm.getDegree(1));
+                    // Serial.print(" ");
+                    // Serial.println(arm.getDegree(2));
                     return true;
                 }))
             ->then(new ScalaTransition(
                 180, 50, 10000, &linearMapping, [&](const int16_t val) {
                     arm.moveToPolar(theta, val, z);
-                    Serial.print(arm.getDegree(0));
-                    Serial.print(" ");
-                    Serial.print(arm.getDegree(1));
-                    Serial.print(" ");
-                    Serial.println(arm.getDegree(2));
+                    // Serial.print(arm.getDegree(0));
+                    // Serial.print(" ");
+                    // Serial.print(arm.getDegree(1));
+                    // Serial.print(" ");
+                    // Serial.println(arm.getDegree(2));
                     return true;
                 }))
         );

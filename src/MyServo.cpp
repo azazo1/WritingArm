@@ -6,7 +6,9 @@
 
 #include <Arduino.h>
 #include <esp32-hal-ledc.h>
-constexpr int SERVO_PWM_RESOLUTION = 16;
+#include <conversion.h>
+
+constexpr int SERVO_PWM_RESOLUTION = 20; // GPT 说 ledcWrite分辨率最高是 20.
 constexpr int SERVO_PWM_FREQUENCY = 50;
 
 MyServo::MyServo(const int channel, const int pin): channel(channel), pin(pin) {
@@ -14,18 +16,18 @@ MyServo::MyServo(const int channel, const int pin): channel(channel), pin(pin) {
     ledcAttachPin(pin, channel);
 }
 
-void MyServo::setDegree(const int degree, const uint32_t delay_ms) {
+void MyServo::setDegree(const double degree, const uint32_t delay_ms) {
     setDegree(degree);
     delay(delay_ms);
 }
 
-void MyServo::setDegree(const int degree) {
-    ledcWrite(channel, map(
+void MyServo::setDegree(const double degree) {
+    ledcWrite(channel, static_cast<uint32_t>(map(
                   degree,
                   0, 180,
-                  static_cast<uint32_t>(65535 * 0.025),
-                  static_cast<uint32_t>(65535 * 0.125)
-              ));
+                  1048575 * 0.025,
+                  1048575 * 0.125
+              )));
     currentDegree = degree;
 }
 
@@ -33,26 +35,26 @@ MyServo::~MyServo() {
     ledcDetachPin(pin);
 }
 
-int MyServo::getCurrentDegree() const {
+double MyServo::getDegree() const {
     return currentDegree;
 }
 
 LimitedServo::LimitedServo(const int channel, const int pin): MyServo(channel, pin) {
 }
 
-LimitedServo::LimitedServo(const int channel, const int pin, const int minDegree,
-                           const int maxDegree, const LimitedMode mode)
-    : MyServo(channel, pin), minDegree(minDegree), maxDegree(maxDegree), mode(mode) {
+LimitedServo::LimitedServo(const int channel, const int pin, const double minDegree,
+                           const double maxDegree, const LimitedMode mode)
+    : MyServo(channel, pin), maxDegree(maxDegree), minDegree(minDegree), mode(mode) {
 }
 
-void LimitedServo::setMaxDegree(const int degree) {
+void LimitedServo::setMaxDegree(const double degree) {
     maxDegree = degree;
     if (degree < minDegree) {
         minDegree = degree;
     }
 }
 
-void LimitedServo::setMinDegree(const int degree) {
+void LimitedServo::setMinDegree(const double degree) {
     minDegree = degree;
     if (degree > maxDegree) {
         maxDegree = degree;
@@ -63,7 +65,7 @@ void LimitedServo::setMode(const LimitedMode mode) {
     this->mode = mode;
 }
 
-void LimitedServo::setDegree(int degree, const uint32_t delay_ms) {
+void LimitedServo::setDegree(double degree, const uint32_t delay_ms) {
     switch (mode) {
         case SATURATING: {
             if (degree > maxDegree) {
@@ -84,7 +86,7 @@ void LimitedServo::setDegree(int degree, const uint32_t delay_ms) {
     MyServo::setDegree(degree, delay_ms);
 }
 
-void LimitedServo::setDegree(int degree) {
+void LimitedServo::setDegree(double degree) {
     switch (mode) {
         case SATURATING: {
             if (degree > maxDegree) {
