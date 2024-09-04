@@ -12,8 +12,11 @@ class WritingArm {
     static constexpr double THETA_DELAY_FACTOR = 30;
     static constexpr double ALPHA_DELAY_FACTOR = 5;
     static constexpr double BETA_DELAY_FACTOR = 3;
-    // r 过大时, z 实际坐标和理论坐标会相差较大, 下垂, 加此参数修正, 此参数是反复测试得来.
-    static constexpr double Z_COMPENSATION_FACTOR = 1.0 / 7.6;
+    /// r 过大时, z 实际坐标和理论坐标会相差较大, 即动臂会下垂, 加此参数修正, 此参数是反复测试得来.
+    /// 此参数越大, 末端补偿越大.
+    static constexpr double Z_COMPENSATION_FACTOR = 20;
+    /// 同样同于 z 坐标补偿, 此参数越大, 较小的 r 得到的补偿就越大, 即补偿增长的越快.
+    static constexpr double COMPENSATION_K = 0.5;
 
     LimitedServo servoA;
     LimitedServo servoB;
