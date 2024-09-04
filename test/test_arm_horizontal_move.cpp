@@ -1,5 +1,9 @@
+//
+// Created by azazo1 on 2024/9/4.
+//
 #include <Arduino.h>
 #include <conversion.h>
+#include <MyServo.h>
 #include <WritingArm.h>
 #include <event/ButtonEvent.h>
 #include <event/KnobEvent.h>
@@ -39,7 +43,7 @@ void setup() {
     WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
     double radius = 42;
     double theta = 90;
-    double z = PAPER_Z + 60;
+    double z = PAPER_Z + 40;
     arm.moveToPolar(theta, radius, z);
 
     Scheduler scheduler;
@@ -52,14 +56,14 @@ void setup() {
     View::setFont(FONT_DATA);
     display.setFont(FONT_DATA);
 
-    auto lf1 = LabeledFrame(String("Z ") + z);
+    auto lf1 = LabeledFrame(String("Radius ") + radius);
     auto sb1 = Seekbar();
-    sb1.setMin(-60);
-    sb1.setMax(100);
-    sb1.setCurrent(static_cast<int16_t>(z));
-    sb1.setOnChangeListener([&lf1, &arm, &theta,&radius, &z](const int16_t val) {
-        lf1.setTitle(String("Z ") + val);
-        z = val;
+    sb1.setMin(0);
+    sb1.setMax(180);
+    sb1.setCurrent(static_cast<int16_t>(radius));
+    sb1.setOnChangeListener([&lf1, &arm, &theta, &radius, &z](const int16_t val) {
+        lf1.setTitle(String("Radius ") + val);
+        radius = val;
         arm.moveToPolar(theta, radius, z);
         Serial.print(arm.getDegree(0));
         Serial.print(" ");
@@ -71,23 +75,13 @@ void setup() {
         scheduler.addSchedule(
             (new SequenceSchedulable())
             ->then(new ScalaTransition(
-                50, 180, 10000, &linearMapping, [&](const int16_t val) {
+                50, 180, 500, &linearMapping, [&](const int16_t val) {
                     arm.moveToPolar(theta, val, z);
-                    // Serial.print(arm.getDegree(0));
-                    // Serial.print(" ");
-                    // Serial.print(arm.getDegree(1));
-                    // Serial.print(" ");
-                    // Serial.println(arm.getDegree(2));
                     return true;
                 }))
             ->then(new ScalaTransition(
-                180, 50, 10000, &linearMapping, [&](const int16_t val) {
+                180, 50, 500, &linearMapping, [&](const int16_t val) {
                     arm.moveToPolar(theta, val, z);
-                    // Serial.print(arm.getDegree(0));
-                    // Serial.print(" ");
-                    // Serial.print(arm.getDegree(1));
-                    // Serial.print(" ");
-                    // Serial.println(arm.getDegree(2));
                     return true;
                 }))
         );

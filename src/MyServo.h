@@ -10,7 +10,7 @@
 class MyServo {
     const int channel;
     const int pin;
-    int currentDegree = -1;
+    int currentDegree = 0;
 
 public:
     MyServo(int channel, int pin);

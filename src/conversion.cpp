@@ -10,7 +10,7 @@
 ///
 /// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png
 /// 以下代码由公式图片喂给 gpt4o 生成, 实测较为准确.
-double alpha(const double r, const double z) {
+double getAlpha(const double r, const double z) {
     constexpr double A = -5.05350076575899e-6;
     constexpr double B = -1.010700135518e-5;
     constexpr double C = 0.20663602919164;
@@ -29,7 +29,7 @@ double alpha(const double r, const double z) {
 ///
 /// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png
 /// 以下代码由公式图片喂给 gpt4o 生成, 实测较为准确.
-double beta(const double r, const double z) {
+double getBeta(const double r, const double z) {
     const double numerator = 5110.0 * z - 11121.0 * sqrt(
                                  -5.05350076575899e-6 * pow(r, 4) - 1.0107001531518e-5 * r * r * z *
                                  z +
@@ -41,13 +41,13 @@ double beta(const double r, const double z) {
 
 
 /// 通过纸面的 xy 坐标获取 A 轴的旋转角度, A 轴为逆时针旋转, 纸平面内向上为起始角度.
-/// 同时通过纸面坐标来确定 r 坐标, r 坐标为提供给 alpha 和 beta 的参数.
+/// 同时通过纸面坐标来确定 r 坐标, r 坐标为提供给 getAlpha 和 getBeta 的参数.
 ///
 /// 纸面坐标为 A5 纸面从左上角开始的坐标, x 轴向右, y 轴向下, 不是直接极坐标转换,
 /// 还要考虑到机械臂 A 轴的位置, r 的一个端点和 A 轴重合.
 ///
 /// 见文件: res/机械臂各个空间元素参考.png
-double theta(const double x, const double y, double &r) {
+double getTheta(const double x, const double y, double &r) {
     const double xFromA = 198.5 - x;
     const double yFromA = 105 - y;
     r = sqrt(xFromA * xFromA + yFromA * yFromA);

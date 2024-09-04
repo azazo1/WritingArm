@@ -7,10 +7,10 @@
 
 constexpr double PAPER_Z = -44.65;
 
-double alpha(double r, double z);
+double getAlpha(double r, double z);
 
-double beta(double r, double z);
+double getBeta(double r, double z);
 
-double theta(double x, double y, double &r);
+double getTheta(double x, double y, double &r);
 
 #endif //CONVERSION_H
