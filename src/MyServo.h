@@ -10,20 +10,20 @@
 class MyServo {
     const int channel;
     const int pin;
-    int currentDegree = 0;
+    double currentDegree = 0;
 
 public:
     MyServo(int channel, int pin);
 
-    virtual void setDegree(int degree, uint32_t delay_ms);
+    virtual void setDegree(double degree, uint32_t delay_ms);
 
     /// 无延迟版本的 setDegree.
-    virtual void setDegree(int degree);
+    virtual void setDegree(double degree);
 
     virtual ~MyServo();
 
     /// 获取当前的角度值.
-    int getCurrentDegree() const;
+    double getDegree() const;
 };
 
 enum LimitedMode {
@@ -38,27 +38,27 @@ enum LimitedMode {
 /// 限制角度的舵机.
 /// 舵机的角度限制在 maxDegree 和 minDegree 间(两端包含).
 class LimitedServo final : public MyServo {
-    int maxDegree = 180;
-    int minDegree = 0;
+    double maxDegree = 180;
+    double minDegree = 0;
     LimitedMode mode = SATURATING;
 
 public:
     LimitedServo(int channel, int pin);
 
-    LimitedServo(int channel, int pin, int minDegree, int maxDegree, LimitedMode mode);
+    LimitedServo(int channel, int pin, double minDegree, double maxDegree, LimitedMode mode);
 
     /// 会确保 maxDegree 大于等于 minDegree.
-    void setMaxDegree(int degree);
+    void setMaxDegree(double degree);
 
     /// 会确保 maxDegree 大于等于 minDegree.
-    void setMinDegree(int degree);
+    void setMinDegree(double degree);
 
     /// 间 LimitedMode.
     void setMode(LimitedMode mode);
 
-    void setDegree(int degree, uint32_t delay_ms) override;
+    void setDegree(double degree, uint32_t delay_ms) override;
 
-    void setDegree(int degree) override;
+    void setDegree(double degree) override;
 };
 
 #endif //MYSERVO_H

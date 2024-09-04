@@ -53,3 +53,11 @@ double getTheta(const double x, const double y, double &r) {
     r = sqrt(xFromA * xFromA + yFromA * yFromA);
     return atan2(yFromA, xFromA);
 }
+
+/// Arduino 中的 map 函数的 double 版本.
+///
+/// 此函数不会检查任何边界与超界情况.
+double map(const double x, const double l, const double r, const double a, const double b) {
+    const double ratio = (x - l) / (r - l);
+    return a + (b - a) * ratio;
+}

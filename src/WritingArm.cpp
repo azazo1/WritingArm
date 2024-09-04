@@ -12,25 +12,25 @@ WritingArm::WritingArm(const int servoAPin, const int servoBPin, const int servo
       servoC(2, servoCPin, 6, 80, SATURATING) {
 }
 
-void WritingArm::setDegree(int theta, int alpha, int beta) {
+void WritingArm::setDegree(double theta, double alpha, double beta) {
     if (theta < 0) {
-        theta = servoA.getCurrentDegree();
+        theta = servoA.getDegree();
     }
     if (alpha < 0) {
-        alpha = servoB.getCurrentDegree();
+        alpha = servoB.getDegree();
     }
     if (beta < 0) {
-        beta = servoC.getCurrentDegree();
+        beta = servoC.getDegree();
     }
     servoA.setDegree(theta);
     servoB.setDegree(alpha);
     servoC.setDegree(beta);
 }
 
-double WritingArm::getAppropriateDelay(int theta, int alpha, int beta) const {
-    const int rawTheta = servoA.getCurrentDegree();
-    const int rawAlpha = servoB.getCurrentDegree();
-    const int rawBeta = servoC.getCurrentDegree();
+double WritingArm::getAppropriateDelay(double theta, double alpha, double beta) const {
+    const double rawTheta = servoA.getDegree();
+    const double rawAlpha = servoB.getDegree();
+    const double rawBeta = servoC.getDegree();
     if (theta < 0) {
         theta = rawTheta;
     }
@@ -46,14 +46,14 @@ double WritingArm::getAppropriateDelay(int theta, int alpha, int beta) const {
     return max(thetaDelay, max(alphaDelay, betaDelay));
 }
 
-int WritingArm::getDegree(const int servo) const {
+double WritingArm::getDegree(const int servo) const {
     switch (servo) {
         case 0:
-            return servoA.getCurrentDegree();
+            return servoA.getDegree();
         case 1:
-            return servoB.getCurrentDegree();
+            return servoB.getDegree();
         case 2:
-            return servoC.getCurrentDegree();
+            return servoC.getDegree();
         default: return -1;
     }
 }
@@ -68,9 +68,5 @@ void WritingArm::moveToPolar(const double theta, const double r, double z) {
     z += r * Z_COMPENSATION_FACTOR;
     const double alpha = getAlpha(r, z);
     const double beta = getBeta(r, z);
-    setDegree(
-        static_cast<int>(round(theta)),
-        static_cast<int>(round(alpha)),
-        static_cast<int>(round(beta))
-    );
+    setDegree(theta, alpha, beta);
 }
