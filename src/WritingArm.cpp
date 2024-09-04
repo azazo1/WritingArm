@@ -65,7 +65,12 @@ void WritingArm::moveTo(const double x, const double y, const double z) {
 }
 
 void WritingArm::moveToPolar(const double theta, const double r, double z) {
-    z += r * Z_COMPENSATION_FACTOR;
+    // 最大半径 r 为 200mm.
+    const double ratio = r / 200;
+    // 前半是一个凸函数, 使在 100 左右的 r 的补偿比线性补偿小.
+    z += (std::exp(COMPENSATION_K * ratio) - 1) / (std::exp(COMPENSATION_K) - 1)
+            * Z_COMPENSATION_FACTOR;
+
     const double alpha = getAlpha(r, z);
     const double beta = getBeta(r, z);
     setDegree(theta, alpha, beta);
