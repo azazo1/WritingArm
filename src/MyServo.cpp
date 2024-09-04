@@ -71,6 +71,7 @@ void LimitedServo::setDegree(int degree, const uint32_t delay_ms) {
             } else if (degree < minDegree) {
                 degree = minDegree;
             }
+            break;
         }
         case CHECKED: {
             if (degree > maxDegree || degree < minDegree) {
@@ -91,6 +92,7 @@ void LimitedServo::setDegree(int degree) {
             } else if (degree < minDegree) {
                 degree = minDegree;
             }
+            break;
         }
         case CHECKED: {
             if (degree > maxDegree || degree < minDegree) {
