@@ -45,19 +45,23 @@ bool NetAdapter::modeAP(const char *ssid, const char *pwd) {
 void NetAdapter::modeSTA(const char *ssid, const char *pwd,
                          const std::function<void(bool)> &cb) {
     closeServer();
-    WiFi.softAPdisconnect();
+    if (ap != nullptr && *ap) {
+        WiFi.softAPdisconnect(); // 不能凭空调用, 要保证处于 ap 状态才调用.
+    }
     delete ap;
     ap = nullptr;
     WiFi.begin(ssid, pwd);
     scheduler->addSchedule(new sche::DelaySchedulable( // 直到状态成功或失败时触发回调函数.
-            0, 100, new sche::SchedulableFromLambda([&](const sche::mtime_t) {
+            0, 100, new sche::SchedulableFromLambda([cb, this](const sche::mtime_t) {
+                // 注意不能忘记捕获 cb.
                 if (WiFiClass::status() == WL_CONNECTED) {
-                    cb(true);
+                    restartServer();
                     ap = new bool(true);
+                    cb(true);
                     return false;
                 }
                 if (WiFiClass::status() == WL_CONNECT_FAILED) {
-                    cb(false);
+                    cb(true);
                     return false;
                 }
                 return true;
@@ -108,21 +112,41 @@ void NetAdapter::messageCallback(
     const JsonVariant args = doc["args"];
     Serial.print("Get cmd type: ");
     Serial.println(type);
-    JsonDocument repondDoc;
+    JsonDocument respondDoc;
     if (type == TYPE_LIFT_PEN) {
         arm->liftPen();
-        repondDoc["code"] = RESPOND_CODE_OK;
+        respondDoc["code"] = RESPOND_CODE_OK;
     } else if (type == TYPE_DROP_PEN) {
         arm->dropPen(args["strength"]);
-        repondDoc["code"] = RESPOND_CODE_OK;
+        respondDoc["code"] = RESPOND_CODE_OK;
     } else if (type == TYPE_MOVE_PEN) {
         arm->movePen(args["x"], args["y"]);
-        repondDoc["code"] = RESPOND_CODE_OK;
+        respondDoc["code"] = RESPOND_CODE_OK;
     } else if (type == TYPE_ACTION_SEQUENCE) {
         // todo
+    } else if (type == TYPE_AP_MODE) {
+        // 这里的 String 不能换成 const char *, 因为后者无法被 lambda 捕获.
+        String ssid = args["ssid"];
+        String pwd = args["pwd"];
+        scheduler->addSchedule(new sche::SchedulableFromLambda(
+            [this, pwd, ssid](sche::mtime_t) {
+                modeAP(ssid.c_str(), pwd.c_str());
+                // 不能在这里进行网络的回复, 因为获取切换结果前网络状态就已经变化了.
+                return false;
+            }));
+        respondDoc["code"] = RESPOND_CODE_OK;
+    } else if (type == TYPE_STA_MODE) {
+        String ssid = args["ssid"];
+        String pwd = args["pwd"];
+        scheduler->addSchedule(new sche::SchedulableFromLambda(
+            [this, ssid, pwd](sche::mtime_t) {
+                modeSTA(ssid.c_str(), pwd.c_str());
+                return false;
+            }));
+        respondDoc["code"] = RESPOND_CODE_OK;
     }
     String rst;
-    serializeJson(repondDoc, rst);
+    serializeJson(respondDoc, rst);
     client.send(rst);
     Serial.print("Respond: ");
     Serial.println(rst);

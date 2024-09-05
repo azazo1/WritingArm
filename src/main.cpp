@@ -45,9 +45,10 @@ NetAdapter netAdapter(&controller, SERVER_PORT, &scheduler);
 void setup() {
     Serial.begin(9600);
 
+    controller.movePen(50, 50);
     controller.liftPen();
-    controller.movePen(100, 100);
-    netAdapter.modeAP("esp32-azo", "asdfghjkl");
+
+    netAdapter.modeAP("esp-azo", "asdfghjkl");
 
     screen.attachToScheduler(&scheduler);
     display.init();

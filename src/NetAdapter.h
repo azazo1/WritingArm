@@ -10,10 +10,18 @@
 
 #include "ArmController.h"
 
+/// 动笔.
 #define TYPE_MOVE_PEN ("m")
+/// 落笔.
 #define TYPE_DROP_PEN ("d")
+/// 提笔.
 #define TYPE_LIFT_PEN ("l")
+/// 机械臂执行动作序列.
 #define TYPE_ACTION_SEQUENCE ("a")
+/// 切换到 AP 模式.
+#define TYPE_AP_MODE ("p")
+/// 切换到 STA 模式.
+#define TYPE_STA_MODE ("s")
 
 #define RESPOND_CODE_OK ("Ok")
 #define RESPOND_CODE_ERROR ("Error")
@@ -67,7 +75,8 @@ public:
     /// 关闭 websockets 服务器, 断开原有  WiFi 连接, 重启 websockets 服务器, 并切换到 STA 模式, 将连接到某个 WiFi.
     /// \param cb 回调函数.
     void modeSTA(const char *ssid, const char *pwd,
-                 const std::function<void(bool)> &cb = nullptr);
+                 const std::function<void(bool)> &cb = [](bool) {
+                 });
 
     /// 关闭 websockets 服务器和已经连接的客户端.
     ~NetAdapter();
