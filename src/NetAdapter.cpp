@@ -23,6 +23,7 @@ void NetAdapter::restartServer() {
     server->listen(port);
     broadcastServer = new WiFiUDP();
     broadcastServer->begin(BROADCAST_PORT);
+    onServerStart();
 }
 
 void NetAdapter::closeServer() {
@@ -184,4 +185,8 @@ String NetAdapter::ip() {
         default:
             return "";
     }
+}
+
+void NetAdapter::setOnServerStartCallback(std::function<void()> cb) {
+    onServerStart = std::move(cb);
 }

@@ -32,6 +32,10 @@
 class NetAdapter {
     bool alive = true;
     const int port;
+
+    /// 会在服务器启动或者重启的时候触发.
+    std::function<void()> onServerStart = []() {
+    };
     sche::Scheduler *const scheduler = nullptr;
     websockets::WebsocketsServer *server = nullptr;
     WiFiUDP *broadcastServer = nullptr;
@@ -86,6 +90,8 @@ public:
 
     /// 获取当前 ip 地址.
     static String ip();
+
+    void setOnServerStartCallback(std::function<void()> cb);
 };
 
 

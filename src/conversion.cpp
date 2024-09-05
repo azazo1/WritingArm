@@ -8,7 +8,7 @@
 
 /// 通过 rz 坐标获取 alpha 角度(角度制).
 ///
-/// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png
+/// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png, res/rz轴转角度公式来源.py
 /// 以下代码由公式图片喂给 gpt4o 生成, 实测较为准确.
 double getAlpha(const double r, const double z) {
     constexpr double A = -5.05350076575899e-6;
@@ -27,7 +27,7 @@ double getAlpha(const double r, const double z) {
 
 /// 通过 rz 坐标获取 beta 角度(角度制).
 ///
-/// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png
+/// 见文件: res/动臂角度和距离数值说明.png, res/动臂rz轴转角度公式.png, res/rz轴转角度公式来源.py
 /// 以下代码由公式图片喂给 gpt4o 生成, 实测较为准确.
 double getBeta(const double r, const double z) {
     const double numerator = 5110.0 * z - 11121.0 * sqrt(
@@ -62,6 +62,12 @@ void getXY(const double theta, double r, double &x, double &y) {
     r += 20.15 - 3.5;
     x = 198.5 - r * sin(theta / 180 * PI);
     y = 105 - r * cos(theta / 180 * PI);
+}
+
+/// 通过 alpha 和 beta 角度反向获取 rz 坐标.
+void getRZ(const double alpha, const double beta, double &r, double &z) {
+    r = 100 * cos(alpha) + 102.2 * cos(beta);
+    z = 100 * sin(alpha) - 102.2 * sin(beta);
 }
 
 /// Arduino 中的 map 函数的 double 版本.

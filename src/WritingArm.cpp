@@ -12,7 +12,7 @@ WritingArm::WritingArm(const int servoAPin, const int servoBPin, const int servo
       servoC(2, servoCPin, 6, 80, SATURATING) {
 }
 
-void WritingArm::setDegree(double theta, double alpha, double beta) {
+void WritingArm::setDegree(double theta, double alpha, double beta, bool cache) {
     if (theta < 0 || isnan(theta)) {
         theta = servoA.getDegree();
     }
@@ -22,6 +22,13 @@ void WritingArm::setDegree(double theta, double alpha, double beta) {
     if (beta < 0 || isnan(beta)) {
         beta = servoC.getDegree();
     }
+    // 更新缓存.
+    // 需要区分缩减和补偿的 rz 值.
+    if (cache) {
+        getRZ(alpha, beta, r, z);
+        getXY(theta, r, x, y);
+    }
+
     servoA.setDegree(theta);
     servoB.setDegree(alpha);
     servoC.setDegree(beta);
@@ -58,7 +65,16 @@ double WritingArm::getDegree(const int servo) const {
     }
 }
 
-void WritingArm::moveTo(const double x, const double y, const double z) {
+void WritingArm::moveTo(double x, double y, double z) {
+    if (x < 0 || isnan(x)) {
+        x = this->x;
+    }
+    if (y < 0 || isnan(y)) {
+        y = this->y;
+    }
+    if (isnan(z)) {
+        z = this->z;
+    }
     double r;
     const double theta = getTheta(x, y, r);
     moveToPolar(theta, r, z);
@@ -68,10 +84,19 @@ void WritingArm::moveTo(const double x, const double y) {
     moveTo(x, y, z);
 }
 
-void WritingArm::moveToPolar(const double theta, double r, double z) {
+void WritingArm::moveToPolar(double theta, double r, double z) {
+    if (theta < 0 || isnan(theta)) {
+        theta = getDegree(0);
+    }
+    if (r < 0 || isnan(r)) {
+        r = this->r;
+    }
+    if (isnan(z)) {
+        z = this->z;
+    }
     this->z = z;
+    this->r = r;
     getXY(theta, r, x, y);
-    // 最大半径 r 为 200mm.
     const double ratio = r / MAX_R;
     // 前半是一个凸函数, 使小的 r 的补偿比普通的线性补偿小.
     z += (std::exp(COMPENSATION_K * ratio) - 1) / (std::exp(COMPENSATION_K) - 1)
@@ -84,11 +109,7 @@ void WritingArm::moveToPolar(const double theta, double r, double z) {
 
     const double alpha = getAlpha(r, z);
     const double beta = getBeta(r, z);
-    setDegree(theta, alpha, beta);
-}
-
-void WritingArm::moveToPolar(const double theta, const double r) {
-    moveToPolar(theta, r, z);
+    setDegree(theta, alpha, beta, false);
 }
 
 void WritingArm::setZ(const double z) {
@@ -101,4 +122,12 @@ double WritingArm::getX() const {
 
 double WritingArm::getY() const {
     return y;
+}
+
+double WritingArm::getZ() const {
+    return z;
+}
+
+double WritingArm::getR() const {
+    return r;
 }

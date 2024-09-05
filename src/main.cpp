@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <NetAdapter.h>
+#include <UI.h>
 #include <WritingArm.h>
 #include <event/ButtonEvent.h>
 #include <event/KnobEvent.h>
@@ -7,9 +8,7 @@
 #include <sche/ScalaTransition.h>
 #include <sche/SchedulableButtonEvent.h>
 #include <sche/SchedulableKnobEvent.h>
-#include <tiny_websockets/server.hpp>
 
-#include "view/Seekbar.h"
 #include "view/Screen.h"
 #include "Knob.h"
 
@@ -36,7 +35,7 @@ auto display = SSD1306Wire(0x3C, SDA, SCL);
 Scheduler scheduler;
 const LinearMapping linearMapping;
 Screen screen(&display);
-auto sb1 = Seekbar();
+UI ui(&screen);
 
 WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
 ArmController controller(&arm);
@@ -68,11 +67,7 @@ void setup() {
             return screen.isAlive();
         }));
 
-    sb1.setMax(100);
-    sb1.setMin(1);
-    sb1.setStep(1);
-    sb1.setCurrent(50);
-    screen.pushRootView(&sb1);
+    ui.build(arm, netAdapter);
 }
 
 void loop() {
