@@ -21,9 +21,16 @@ void NetAdapter::restartServer() {
     closeServer();
     server = new websockets::WebsocketsServer();
     server->listen(port);
+    broadcastServer = new WiFiUDP();
+    broadcastServer->begin(BROADCAST_PORT);
 }
 
 void NetAdapter::closeServer() {
+    if (broadcastServer != nullptr && broadcastServer->available()) {
+        broadcastServer->stop();
+    }
+    delete broadcastServer;
+    broadcastServer = nullptr;
     delete server;
     server = nullptr;
     clients.clear();
@@ -88,6 +95,21 @@ void NetAdapter::poll() {
         client.onMessage(messageCallback_);
         clients.push_back(client);
     }
+    if (broadcastServer->parsePacket()) {
+        char buffer[255];
+        const int len = broadcastServer->read(buffer, 255);
+        if (len > 0) {
+            buffer[len] = 0;
+        }
+        if (strcmp(buffer, "ping") == 0) {
+            broadcastServer->beginPacket();
+            const String respond = String("pong") + port;
+            const auto respond_c_str = reinterpret_cast<const uint8_t *>(respond.c_str());
+            broadcastServer->write(respond_c_str, respond.length());
+            broadcastServer->endPacket();
+            broadcastServer->flush();
+        }
+    }
     for (int i = 0; i < clients.size(); ++i) {
         websockets::WebsocketsClient &client = clients.at(i);
         if (!client.available(true)) {
@@ -150,4 +172,16 @@ void NetAdapter::messageCallback(
     client.send(rst);
     Serial.print("Respond: ");
     Serial.println(rst);
+}
+
+String NetAdapter::ip() {
+    switch (WiFiClass::getMode()) {
+        case WIFI_MODE_AP:
+            return WiFi.softAPIP().toString();
+        case WIFI_MODE_APSTA:
+        case WIFI_MODE_STA:
+            return WiFi.localIP().toString();
+        default:
+            return "";
+    }
 }

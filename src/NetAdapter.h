@@ -10,6 +10,8 @@
 
 #include "ArmController.h"
 
+#define BROADCAST_PORT 13301
+
 /// 动笔.
 #define TYPE_MOVE_PEN ("m")
 /// 落笔.
@@ -32,6 +34,7 @@ class NetAdapter {
     const int port;
     sche::Scheduler *const scheduler = nullptr;
     websockets::WebsocketsServer *server = nullptr;
+    WiFiUDP *broadcastServer = nullptr;
     std::vector<websockets::WebsocketsClient> clients;
     ArmController *arm;
     /// nullptr 表示模式未定义, 适配器未完全初始化或处于模式更换期间.
@@ -80,6 +83,9 @@ public:
 
     /// 关闭 websockets 服务器和已经连接的客户端.
     ~NetAdapter();
+
+    /// 获取当前 ip 地址.
+    static String ip();
 };
 
 
