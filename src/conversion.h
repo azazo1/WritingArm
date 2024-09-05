@@ -13,6 +13,8 @@ double getBeta(double r, double z);
 
 double getTheta(double x, double y, double &r);
 
+void getXY(double theta, double r, double &x, double &y);
+
 double map(double x, double l, double r, double a, double b);
 
 #endif //CONVERSION_H

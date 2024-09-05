@@ -1,5 +1,7 @@
 # 写字机械臂
 
+项目地址: https://github.com/azazo1/WritingArm.
+
 建模图:
 
 [//]: # (todo 建模图片)
@@ -12,4 +14,4 @@
 
 使用到的库:
 
-- [OLED_UI](https://github.com/azazo1/OLED_UI) (本人写的.)
+- [OLED_UI](https://github.com/azazo1/OLED_UI) (本人拙作.)

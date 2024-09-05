@@ -46,12 +46,22 @@ double getBeta(const double r, const double z) {
 /// 纸面坐标为 A5 纸面从左上角开始的坐标, x 轴向右, y 轴向下, 不是直接极坐标转换,
 /// 还要考虑到机械臂 A 轴的位置, r 的一个端点和 A 轴重合.
 ///
-/// 见文件: res/机械臂各个空间元素参考.png
+/// 见文件: res/机械臂各个空间元素参考.png, res/动臂部分固定尺寸参考.png.
 double getTheta(const double x, const double y, double &r) {
     const double xFromA = 198.5 - x;
     const double yFromA = 105 - y;
+    // 动臂不是只是由两个杆组成的, 还有一些偏移量, 参考 动臂部分固定尺寸参考.png.
     r = sqrt(xFromA * xFromA + yFromA * yFromA);
-    return atan2(yFromA, xFromA);
+    r -= 20.15 - 3.5;
+    // 注意 atan2 第一个参数是平面直角坐标系的 y 轴, 但是这里根据空间管理, 填纸面 x 轴.
+    return atan2(xFromA, yFromA) * 180 / PI;
+}
+
+/// 通过 theta 和 r 获取 纸面 xy 坐标, 是 getTheta 的逆向过程.
+void getXY(const double theta, double r, double &x, double &y) {
+    r += 20.15 - 3.5;
+    x = 198.5 - r * sin(theta / 180 * PI);
+    y = 105 - r * cos(theta / 180 * PI);
 }
 
 /// Arduino 中的 map 函数的 double 版本.

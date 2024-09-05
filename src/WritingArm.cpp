@@ -13,13 +13,13 @@ WritingArm::WritingArm(const int servoAPin, const int servoBPin, const int servo
 }
 
 void WritingArm::setDegree(double theta, double alpha, double beta) {
-    if (theta < 0) {
+    if (theta < 0 || isnan(theta)) {
         theta = servoA.getDegree();
     }
-    if (alpha < 0) {
+    if (alpha < 0 || isnan(alpha)) {
         alpha = servoB.getDegree();
     }
-    if (beta < 0) {
+    if (beta < 0 || isnan(beta)) {
         beta = servoC.getDegree();
     }
     servoA.setDegree(theta);
@@ -31,13 +31,13 @@ double WritingArm::getAppropriateDelay(double theta, double alpha, double beta) 
     const double rawTheta = servoA.getDegree();
     const double rawAlpha = servoB.getDegree();
     const double rawBeta = servoC.getDegree();
-    if (theta < 0) {
+    if (theta < 0 || isnan(theta)) {
         theta = rawTheta;
     }
-    if (alpha < 0) {
+    if (alpha < 0 || isnan(alpha)) {
         alpha = rawAlpha;
     }
-    if (beta < 0) {
+    if (beta < 0 || isnan(beta)) {
         beta = rawBeta;
     }
     const double thetaDelay = abs(theta - rawTheta) * THETA_DELAY_FACTOR;
@@ -64,14 +64,33 @@ void WritingArm::moveTo(const double x, const double y, const double z) {
     moveToPolar(theta, r, z);
 }
 
-void WritingArm::moveToPolar(const double theta, const double r, double z) {
+void WritingArm::moveTo(const double x, const double y) {
+    moveTo(x, y, z);
+}
+
+void WritingArm::moveToPolar(const double theta, double r, double z) {
+    this->z = z;
+    getXY(theta, r, x, y);
     // 最大半径 r 为 200mm.
-    const double ratio = r / 200;
+    const double ratio = r / MAX_R;
     // 前半是一个凸函数, 使小的 r 的补偿比普通的线性补偿小.
     z += (std::exp(COMPENSATION_K * ratio) - 1) / (std::exp(COMPENSATION_K) - 1)
             * Z_COMPENSATION_FACTOR;
 
+    // 限制 r 的值, 防止 alpha 和 beta 值为 nan.
+    if (z * z + r * r > MAX_RZ_SQUARES) {
+        r = sqrt(MAX_RZ_SQUARES - z * z);
+    }
+
     const double alpha = getAlpha(r, z);
     const double beta = getBeta(r, z);
     setDegree(theta, alpha, beta);
+}
+
+void WritingArm::moveToPolar(const double theta, const double r) {
+    moveToPolar(theta, r, z);
+}
+
+void WritingArm::setZ(const double z) {
+    moveTo(x, y, z);
 }
