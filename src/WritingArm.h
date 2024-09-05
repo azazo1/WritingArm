@@ -13,7 +13,7 @@ constexpr double PAPER_HEIGHT = 210.0;
 constexpr double MAX_RZ_SQUARES = 40883.8025; // 使 alpha 和 beta 有效的最大 r 和 z 坐标平方和.
 constexpr double MAX_R = sqrt(MAX_RZ_SQUARES); // z 坐标为 0 时的使 alpha 和 beta 不为 nan 的最大 r.
 
-/// 写字机械臂三个舵机的驱动类,
+/// 写字机械臂三个舵机的驱动类, 负责写字机械臂的一些基础移动行为.
 class WritingArm {
     static constexpr double THETA_DELAY_FACTOR = 30;
     static constexpr double ALPHA_DELAY_FACTOR = 5;
@@ -40,6 +40,10 @@ class WritingArm {
     double y = 0;
 
 public:
+    WritingArm(WritingArm &) = delete;
+
+    WritingArm(WritingArm &&) = delete;
+
     WritingArm(int servoAPin, int servoBPin, int servoCPin);
 
     /// 设置舵机的角度, 不自动添加延迟.
@@ -73,6 +77,10 @@ public:
 
     /// 只改变 z 坐标.
     void setZ(double z);
+
+    double getX() const;
+
+    double getY() const;
 };
 
 

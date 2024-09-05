@@ -94,3 +94,11 @@ void WritingArm::moveToPolar(const double theta, const double r) {
 void WritingArm::setZ(const double z) {
     moveTo(x, y, z);
 }
+
+double WritingArm::getX() const {
+    return x;
+}
+
+double WritingArm::getY() const {
+    return y;
+}

@@ -13,6 +13,10 @@ class MyServo {
     double currentDegree = 0;
 
 public:
+    MyServo(MyServo &) = delete;
+
+    MyServo(MyServo &&) = delete;
+
     MyServo(int channel, int pin);
 
     virtual void setDegree(double degree, uint32_t delay_ms);
@@ -43,6 +47,10 @@ class LimitedServo final : public MyServo {
     LimitedMode mode = SATURATING;
 
 public:
+    LimitedServo(LimitedServo &) = delete;
+
+    LimitedServo(LimitedServo &&) = delete;
+
     LimitedServo(int channel, int pin);
 
     LimitedServo(int channel, int pin, double minDegree, double maxDegree, LimitedMode mode);

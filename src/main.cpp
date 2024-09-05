@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <conversion.h>
+#include <NetAdapter.h>
 #include <WritingArm.h>
 #include <event/ButtonEvent.h>
 #include <event/KnobEvent.h>
@@ -7,8 +7,7 @@
 #include <sche/ScalaTransition.h>
 #include <sche/SchedulableButtonEvent.h>
 #include <sche/SchedulableKnobEvent.h>
-#include <sche/SequenceSchedulable.h>
-#include <view/LabeledFrame.h>
+#include <tiny_websockets/server.hpp>
 
 #include "view/Seekbar.h"
 #include "view/Screen.h"
@@ -24,6 +23,8 @@
 #define KNOB_PIN_B 4
 #define BUTTON_PIN 16
 
+#define SERVER_PORT 13300
+
 using namespace knob;
 using namespace sche;
 using namespace propmap;
@@ -32,30 +33,20 @@ using namespace event;
 
 
 auto display = SSD1306Wire(0x3C, SDA, SCL);
+Scheduler scheduler;
+const LinearMapping linearMapping;
+Screen screen(&display);
+auto sb1 = Seekbar();
+
+WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
+ArmController controller(&arm);
+NetAdapter netAdapter(&controller, SERVER_PORT, &scheduler);
 
 void setup() {
     Serial.begin(9600);
 
-    WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
-    double z = PAPER_Z + 30;
-    // arm.moveToPolar(theta, radius, z);
-    // arm.moveTo(PAPER_WIDTH / 2, PAPER_HEIGHT / 2, z);
-    // arm.moveTo(0, 0, z);
-    arm.moveTo(100, 100, z);
-    // while (true) {
-    // arm.moveTo(0, 0, z);
-    // delay(1000);
-    // arm.moveTo(0, 100);
-    // delay(1000);
-    // arm.moveTo(100, 100);
-    // delay(1000);
-    // arm.moveTo(100, 0);
-    // delay(1000);
-    // }
+    netAdapter.modeAP("esp32-azo", "asdfghjkl");
 
-    Scheduler scheduler;
-    const LinearMapping linearMapping;
-    Screen screen(&display);
     screen.attachToScheduler(&scheduler);
     display.init();
     display.setBrightness(50);
@@ -63,50 +54,24 @@ void setup() {
     View::setFont(FONT_DATA);
     display.setFont(FONT_DATA);
 
-    auto lf1 = LabeledFrame(String("Z ") + z);
-    auto sb1 = Seekbar();
-    sb1.setMin(-10);
-    sb1.setMax(30);
-    sb1.setCurrent(static_cast<int16_t>(z));
-    sb1.setOnChangeListener([&lf1, &arm, &z](const double val) {
-        lf1.setTitle(String("Z ") + val);
-        z = val;
-        arm.setZ(val);
-    });
-    sb1.setOnConfirmListener([&](const int16_t) {
-        scheduler.addSchedule(
-            (new SequenceSchedulable())
-            ->then(new ScalaTransition(
-                0, 100, 3000, &linearMapping, [&](const double val) {
-                    arm.moveTo(100, val, z);
-                    return true;
-                }))
-            ->then(new ScalaTransition(
-                100, 0, 3000, &linearMapping, [&](const double val) {
-                    arm.moveTo(100, val, z);
-                    return true;
-                }))
-        );
-    });
-    sb1.setOnCancelListener([](const int16_t) {
-    });
-    sb1.setStep(1);
-    lf1.addChild(&sb1);
-
-    screen.pushRootView(&lf1);
-
     scheduler.addSchedule(new SchedulableKnobEvent(
-        KNOB_PIN_A, KNOB_PIN_B, [&screen](const int delta) {
+        KNOB_PIN_A, KNOB_PIN_B, [](const int delta) {
             screen.dispatchEvent(KnobEvent(screen, delta));
             return screen.isAlive();
         }));
     scheduler.addSchedule(new SchedulableButtonEvent(
-        BUTTON_PIN, [&screen](const mtime_t pressedDuration) {
+        BUTTON_PIN, [](const mtime_t pressedDuration) {
             screen.dispatchEvent(ButtonEvent(screen, static_cast<int>(pressedDuration)));
             return screen.isAlive();
         }));
-    scheduler.mainloop();
+
+    sb1.setMax(100);
+    sb1.setMin(1);
+    sb1.setStep(1);
+    sb1.setCurrent(50);
+    screen.pushRootView(&sb1);
 }
 
 void loop() {
+    scheduler.mainloop();
 }
