@@ -20,7 +20,7 @@ public:
     explicit ArmController(WritingArm *arm);
 
     /// 落笔, 可以反复调用此方法来控制笔的强度.
-    /// \param strength 落笔强度.
+    /// \param strength 落笔强度, 范围为 0~1, 超过范围的将自动取边界.
     void dropPen(double strength);
 
     /// 提笔.

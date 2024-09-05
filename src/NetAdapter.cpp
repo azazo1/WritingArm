@@ -104,7 +104,26 @@ void NetAdapter::messageCallback(
         Serial.println("Deserialing json failed.");
         return;
     }
-    const String v = doc["type"];
-    Serial.println(v);
-    client.send("Ok");
+    const String type = doc["type"];
+    const JsonVariant args = doc["args"];
+    Serial.print("Get cmd type: ");
+    Serial.println(type);
+    JsonDocument repondDoc;
+    if (type == TYPE_LIFT_PEN) {
+        arm->liftPen();
+        repondDoc["code"] = RESPOND_CODE_OK;
+    } else if (type == TYPE_DROP_PEN) {
+        arm->dropPen(args["strength"]);
+        repondDoc["code"] = RESPOND_CODE_OK;
+    } else if (type == TYPE_MOVE_PEN) {
+        arm->movePen(args["x"], args["y"]);
+        repondDoc["code"] = RESPOND_CODE_OK;
+    } else if (type == TYPE_ACTION_SEQUENCE) {
+        // todo
+    }
+    String rst;
+    serializeJson(repondDoc, rst);
+    client.send(rst);
+    Serial.print("Respond: ");
+    Serial.println(rst);
 }

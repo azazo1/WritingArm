@@ -8,13 +8,18 @@ ArmController::ArmController(WritingArm *arm): arm(arm) {
 }
 
 void ArmController::dropPen(double strength) {
-    // todo
+    if (strength < 0) {
+        strength = 0;
+    } else if (strength > 1) {
+        strength = 1;
+    }
+    arm->setZ(PAPER_Z - strength * 3);
 }
 
 void ArmController::liftPen() {
-    // todo
+    arm->setZ(PAPER_Z + 20);
 }
 
 void ArmController::movePen(double x, double y) {
-    // todo
+    arm->moveTo(x, y);
 }

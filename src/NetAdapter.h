@@ -7,10 +7,16 @@
 
 #include <sche/Scheduler.h>
 #include <tiny_websockets/server.hpp>
-#include <utility>
 
 #include "ArmController.h"
 
+#define TYPE_MOVE_PEN ("m")
+#define TYPE_DROP_PEN ("d")
+#define TYPE_LIFT_PEN ("l")
+#define TYPE_ACTION_SEQUENCE ("a")
+
+#define RESPOND_CODE_OK ("Ok")
+#define RESPOND_CODE_ERROR ("Error")
 
 /// 负责处理来自 websockets 的控制输入.
 class NetAdapter {
@@ -34,11 +40,11 @@ class NetAdapter {
     void poll();
 
     /// 接受到客户端的消息.
-    static void messageCallback(websockets::WebsocketsClient &client,
-                         const websockets::WebsocketsMessage& message);
+    void messageCallback(websockets::WebsocketsClient &client,
+                         const websockets::WebsocketsMessage &message);
 
     const websockets::MessageCallback messageCallback_ = [&](
-        websockets::WebsocketsClient &c, const websockets::WebsocketsMessage& m
+        websockets::WebsocketsClient &c, const websockets::WebsocketsMessage &m
     ) {
         messageCallback(c, m);
     };
