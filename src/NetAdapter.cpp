@@ -4,6 +4,7 @@
 
 #include "NetAdapter.h"
 
+#include <Preferences.h>
 #include <sche/DelaySchedulable.h>
 #include <sche/Scheduler.h>
 #include <sche/SequenceSchedulable.h>
@@ -43,6 +44,11 @@ bool NetAdapter::modeAP(const char *ssid, const char *pwd) {
     delete ap;
     ap = nullptr;
     if (WiFi.softAP(ssid, pwd)) {
+        Preferences pref1;
+        pref1.begin(ARM_PREF_NAMESPACE);
+        pref1.putString("ap_ssid", ssid);
+        pref1.putString("ap_pwd", pwd);
+        pref1.end();
         restartServer();
         ap = new bool(true);
         return true;
@@ -59,12 +65,20 @@ void NetAdapter::modeSTA(const char *ssid, const char *pwd,
     delete ap;
     ap = nullptr;
     WiFi.begin(ssid, pwd);
+    // 防止字符串被销毁.
+    String ssid_ = ssid;
+    String pwd_ = pwd;
     scheduler->addSchedule(new sche::DelaySchedulable( // 直到状态成功或失败时触发回调函数.
-            0, 100, new sche::SchedulableFromLambda([cb, this](const sche::mtime_t) {
+            0, 100, new sche::SchedulableFromLambda([cb, this, ssid_, pwd_](const sche::mtime_t) {
                 // 注意不能忘记捕获 cb.
                 if (WiFiClass::status() == WL_CONNECTED) {
+                    Preferences pref1;
+                    pref1.begin(ARM_PREF_NAMESPACE);
+                    pref1.putString("sta_ssid", ssid_);
+                    pref1.putString("sta_pwd", pwd_);
+                    pref1.end();
                     restartServer();
-                    ap = new bool(true);
+                    ap = new bool(false);
                     cb(true);
                     return false;
                 }
@@ -140,33 +154,49 @@ void NetAdapter::messageCallback(
         arm->liftPen();
         respondDoc["code"] = RESPOND_CODE_OK;
     } else if (type == TYPE_DROP_PEN) {
-        arm->dropPen(args["strength"]);
-        respondDoc["code"] = RESPOND_CODE_OK;
+        if (args.isNull() || args["strength"].isNull()) {
+            respondDoc["code"] = RESPOND_CODE_ERROR;
+        } else {
+            arm->dropPen(args["strength"]);
+            respondDoc["code"] = RESPOND_CODE_OK;
+        }
     } else if (type == TYPE_MOVE_PEN) {
-        arm->movePen(args["x"], args["y"]);
-        respondDoc["code"] = RESPOND_CODE_OK;
+        if (args.isNull() || args["x"].isNull() || args["y"].isNull()) {
+            respondDoc["code"] = RESPOND_CODE_ERROR;
+        } else {
+            arm->movePen(args["x"], args["y"]);
+            respondDoc["code"] = RESPOND_CODE_OK;
+        }
     } else if (type == TYPE_ACTION_SEQUENCE) {
         // todo
     } else if (type == TYPE_AP_MODE) {
-        // 这里的 String 不能换成 const char *, 因为后者无法被 lambda 捕获.
-        String ssid = args["ssid"];
-        String pwd = args["pwd"];
-        scheduler->addSchedule(new sche::SchedulableFromLambda(
-            [this, pwd, ssid](sche::mtime_t) {
-                modeAP(ssid.c_str(), pwd.c_str());
-                // 不能在这里进行网络的回复, 因为获取切换结果前网络状态就已经变化了.
-                return false;
-            }));
-        respondDoc["code"] = RESPOND_CODE_OK;
+        if (args.isNull() || args["ssid"].isNull() || args["pwd"].isNull()) {
+            respondDoc["code"] = RESPOND_CODE_ERROR;
+        } else {
+            // 这里的 String 不能换成 const char *, 因为后者无法被 lambda 捕获.
+            String ssid = args["ssid"];
+            String pwd = args["pwd"];
+            scheduler->addSchedule(new sche::SchedulableFromLambda(
+                [this, pwd, ssid](sche::mtime_t) {
+                    modeAP(ssid.c_str(), pwd.c_str());
+                    // 不能在这里进行网络的回复, 因为获取切换结果前网络状态就已经变化了.
+                    return false;
+                }));
+            respondDoc["code"] = RESPOND_CODE_OK;
+        }
     } else if (type == TYPE_STA_MODE) {
-        String ssid = args["ssid"];
-        String pwd = args["pwd"];
-        scheduler->addSchedule(new sche::SchedulableFromLambda(
-            [this, ssid, pwd](sche::mtime_t) {
-                modeSTA(ssid.c_str(), pwd.c_str());
-                return false;
-            }));
-        respondDoc["code"] = RESPOND_CODE_OK;
+        if (args.isNull() || args["ssid"].isNull() || args["pwd"].isNull()) {
+            respondDoc["code"] = RESPOND_CODE_ERROR;
+        } else {
+            String ssid = args["ssid"];
+            String pwd = args["pwd"];
+            scheduler->addSchedule(new sche::SchedulableFromLambda(
+                [this, ssid, pwd](sche::mtime_t) {
+                    modeSTA(ssid.c_str(), pwd.c_str());
+                    return false;
+                }));
+            respondDoc["code"] = RESPOND_CODE_OK;
+        }
     }
     String rst;
     serializeJson(respondDoc, rst);
@@ -175,18 +205,20 @@ void NetAdapter::messageCallback(
     Serial.println(rst);
 }
 
-String NetAdapter::ip() {
-    switch (WiFiClass::getMode()) {
-        case WIFI_MODE_AP:
-            return WiFi.softAPIP().toString();
-        case WIFI_MODE_APSTA:
-        case WIFI_MODE_STA:
-            return WiFi.localIP().toString();
-        default:
-            return "";
+String NetAdapter::ip() const {
+    if (ap == nullptr) {
+        return "";
     }
+    if (*ap) {
+        return WiFi.softAPIP().toString();
+    }
+    return WiFi.localIP().toString();
 }
 
 void NetAdapter::setOnServerStartCallback(std::function<void()> cb) {
     onServerStart = std::move(cb);
+}
+
+const bool *NetAdapter::getMode() const {
+    return ap;
 }

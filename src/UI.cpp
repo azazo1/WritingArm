@@ -4,6 +4,11 @@
 
 #include "UI.h"
 
+#include <esp_wifi.h>
+#include <Preferences.h>
+#include <sche/DelaySchedulable.h>
+#include <sche/SchedulableFromLambda.h>
+
 UI::UI(view::Screen *screen): screen(screen) {
 }
 
@@ -24,9 +29,180 @@ void UI::buildMain() {
 }
 
 void UI::buildNetwork(NetAdapter &netAdapter) {
-    netAdapter.setOnServerStartCallback();
+    Preferences pref0;
+    pref0.begin(ARM_PREF_NAMESPACE);
+    staPwd = pref0.getString("sta_pwd", String());
+    staSsid = pref0.getString("sta_ssid", String());
+    apPwd = pref0.getString("ap_pwd", String(DEFAULT_AP_PWD));
+    apSsid = pref0.getString("ap_ssid", String(DEFAULT_AP_SSID));
+    pref0.end();
     networkFrame.addChild(&networkTs);
-    // todo 构建网络设置.
+
+    networkTs.addItem("IP");
+    networkTs.addItem("Mode AP");
+    networkTs.addItem("Mode STA");
+    networkTs.addItem("Reset");
+
+    networkTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
+        switch (idx) {
+            case 0: {
+                const bool *ap = netAdapter.getMode();
+                String prefix = "null/";
+                if (ap != nullptr) {
+                    if (*ap) {
+                        prefix = "ap:/";
+                    } else {
+                        prefix = "sta/";
+                    }
+                }
+                ipText.setText(prefix + netAdapter.ip());
+                screen->pushRootView(&ipFrame);
+            }
+            break;
+            case 1: {
+                editingAP = true;
+                screen->pushRootView(&modeAPFrame);
+            }
+            break;
+            case 2: {
+                editingAP = false;
+                screen->pushRootView(&modeSTAFrame);
+            }
+            break;
+            case 3: {
+                // 恢复出厂设置.
+                Preferences pref1;
+                pref1.begin(ARM_PREF_NAMESPACE);
+                pref1.clear();
+                pref1.end();
+                esp_wifi_restore();
+                ESP.restart();
+            }
+            default: ;
+        }
+    });
+
+    ipFrame.addChild(&ipText);
+
+    ssidInput.setOnDoneListener([this](const String &ssid) {
+        if (editingAP) {
+            apSsid = ssid;
+        } else {
+            staSsid = ssid;
+        }
+    });
+    pwdInput.setOnDoneListener([this](const String &pwd) {
+        if (editingAP) {
+            apPwd = pwd;
+        } else {
+            staPwd = pwd;
+        }
+    });
+
+    modeAPFrame.addChild(&apTs);
+    apTs.addItem("SSID");
+    apTs.addItem("Pwd");
+    apTs.addItem("Apply");
+    apTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
+        switch (idx) {
+            case 0: {
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                apSsid = pref.getString("ap_ssid", String(DEFAULT_AP_SSID));
+                pref.end();
+                ssidInput.setText(apSsid);
+                screen->pushRootView(&ssidInput);
+            }
+            break;
+            case 1: {
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                apPwd = pref.getString("ap_pwd", String(DEFAULT_AP_PWD));
+                pref.end();
+                pwdInput.setText(apPwd);
+                screen->pushRootView(&pwdInput);
+            }
+            break;
+            case 2: {
+                if (apSsid.isEmpty()) {
+                    // 显示错误信息.
+                    apTs.setItemAt(2, "Error at SSID",
+                                   screen->getDisplay(), screen->getScheduler());
+                    postDelay(3000, [this] {
+                        apTs.setItemAt(2, "Apply", screen->getDisplay(), screen->getScheduler());
+                    });
+                    return;
+                }
+                if (apPwd.length() < 8) {
+                    apTs.setItemAt(2, "Error at Pwd",
+                                   screen->getDisplay(), screen->getScheduler());
+                    postDelay(3000, [this] {
+                        apTs.setItemAt(2, "Apply",
+                                       screen->getDisplay(), screen->getScheduler());
+                    });
+                    return;
+                }
+                screen->popRootView();
+                // 切换网络模式
+                netAdapter.modeAP(apSsid.c_str(), apPwd.c_str());
+            }
+            break;
+            default: ;
+        }
+    });
+
+    modeSTAFrame.addChild(&staTs);
+    staTs.addItem("SSID");
+    staTs.addItem("Pwd");
+    staTs.addItem("Apply");
+    staTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
+        switch (idx) {
+            case 0: {
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                staSsid = pref.getString("sta_ssid", String());
+                pref.end();
+                ssidInput.setText(staSsid);
+                screen->pushRootView(&ssidInput);
+            }
+            break;
+            case 1: {
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                staPwd = pref.getString("sta_pwd", String());
+                pref.end();
+                pwdInput.setText(staPwd);
+                screen->pushRootView(&pwdInput);
+            }
+            break;
+            case 2: {
+                if (staSsid.isEmpty()) {
+                    // 显示错误信息.
+                    staTs.setItemAt(2, "Error at SSID",
+                                    screen->getDisplay(), screen->getScheduler());
+                    postDelay(3000, [this] {
+                        staTs.setItemAt(2, "Apply",
+                                        screen->getDisplay(), screen->getScheduler());
+                    });
+                    return;
+                }
+                if (staPwd.length() < 8) {
+                    staTs.setItemAt(2, "Error at Pwd",
+                                    screen->getDisplay(), screen->getScheduler());
+                    postDelay(3000, [this] {
+                        staTs.setItemAt(2, "Apply",
+                                        screen->getDisplay(), screen->getScheduler());
+                    });
+                    return;
+                }
+                screen->popRootView();
+                // 切换网络模式
+                netAdapter.modeSTA(staSsid.c_str(), staPwd.c_str());
+            }
+            break;
+            default: ;
+        }
+    });
 }
 
 void UI::buildArmAdjusting() {
@@ -247,4 +423,12 @@ void UI::build(WritingArm &arm, NetAdapter &netAdapter) {
     buildTAB(arm);
     buildTRZ(arm);
     built = true;
+}
+
+void UI::postDelay(const sche::mtime_t delay, const std::function<void()> &action) const {
+    screen->getScheduler().addSchedule(new sche::DelaySchedulable(
+        delay, 0, new sche::SchedulableFromLambda([action](sche::mtime_t) {
+            action();
+            return false;
+        })));
 }

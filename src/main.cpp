@@ -47,7 +47,8 @@ void setup() {
     controller.movePen(50, 50);
     controller.liftPen();
 
-    netAdapter.modeAP("esp-azo", "asdfghjkl");
+    // 默认不开启网络模式.
+    // netAdapter.modeAP(DEFAULT_AP_SSID, DEFAULT_AP_PWD);
 
     screen.attachToScheduler(&scheduler);
     display.init();

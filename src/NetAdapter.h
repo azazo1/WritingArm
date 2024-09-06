@@ -11,6 +11,8 @@
 #include "ArmController.h"
 
 #define BROADCAST_PORT 13301
+/// preference 命名空间.
+#define ARM_PREF_NAMESPACE "writing-arm"
 
 /// 动笔.
 #define TYPE_MOVE_PEN ("m")
@@ -76,10 +78,14 @@ public:
     NetAdapter(ArmController *arm, int port, sche::Scheduler *scheduler);
 
     /// 关闭 websockets 服务器, 断开原有 WiFi 连接, 重启 websockets 服务器, 并切换到 AP 模式, 自身发起 WiFi.
+    /// 如果成功进入 AP 模式, 将会保存当前 ssid 和 pwd 进 Preferences.
+    ///
     /// 返回是否成功进入 AP 模式.
     bool modeAP(const char *ssid, const char *pwd);
 
     /// 关闭 websockets 服务器, 断开原有  WiFi 连接, 重启 websockets 服务器, 并切换到 STA 模式, 将连接到某个 WiFi.
+    /// 如果成功进入 STA 模式, 将会保存当前 ssid 和 pwd 进 Preferences.
+    ///
     /// \param cb 回调函数.
     void modeSTA(const char *ssid, const char *pwd,
                  const std::function<void(bool)> &cb = [](bool) {
@@ -89,9 +95,12 @@ public:
     ~NetAdapter();
 
     /// 获取当前 ip 地址.
-    static String ip();
+    String ip() const;
 
     void setOnServerStartCallback(std::function<void()> cb);
+
+    /// 如果为 nullptr 则当前网络无效, 为 true 则表示 ap, false 则表示 sta.
+    const bool *getMode() const;
 };
 
 
