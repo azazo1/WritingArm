@@ -61,11 +61,21 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
             break;
             case 1: {
                 editingAP = true;
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                apSsid = pref.getString("ap_ssid", String(DEFAULT_AP_SSID));
+                apPwd = pref.getString("ap_pwd", String(DEFAULT_AP_PWD));
+                pref.end();
                 screen->pushRootView(&modeAPFrame);
             }
             break;
             case 2: {
                 editingAP = false;
+                Preferences pref;
+                pref.begin(ARM_PREF_NAMESPACE);
+                staSsid = pref.getString("sta_ssid", String());
+                staPwd = pref.getString("sta_pwd", String());
+                pref.end();
                 screen->pushRootView(&modeSTAFrame);
             }
             break;
@@ -106,19 +116,11 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
     apTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
         switch (idx) {
             case 0: {
-                Preferences pref;
-                pref.begin(ARM_PREF_NAMESPACE);
-                apSsid = pref.getString("ap_ssid", String(DEFAULT_AP_SSID));
-                pref.end();
                 ssidInput.setText(apSsid);
                 screen->pushRootView(&ssidInput);
             }
             break;
             case 1: {
-                Preferences pref;
-                pref.begin(ARM_PREF_NAMESPACE);
-                apPwd = pref.getString("ap_pwd", String(DEFAULT_AP_PWD));
-                pref.end();
                 pwdInput.setText(apPwd);
                 screen->pushRootView(&pwdInput);
             }
@@ -158,19 +160,11 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
     staTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
         switch (idx) {
             case 0: {
-                Preferences pref;
-                pref.begin(ARM_PREF_NAMESPACE);
-                staSsid = pref.getString("sta_ssid", String());
-                pref.end();
                 ssidInput.setText(staSsid);
                 screen->pushRootView(&ssidInput);
             }
             break;
             case 1: {
-                Preferences pref;
-                pref.begin(ARM_PREF_NAMESPACE);
-                staPwd = pref.getString("sta_pwd", String());
-                pref.end();
                 pwdInput.setText(staPwd);
                 screen->pushRootView(&pwdInput);
             }
