@@ -8,7 +8,6 @@
 
 
 /// 负责机械臂的高级行为.
-/// todo 控制机械臂的位置, 注意 z 轴需要抽象成起笔落笔以及落笔的力度.
 /// todo 根据动作序列(类似gcode)来控制机械臂.
 /// todo 设置基本坐标, 然后通过小偏移量来实现在指定位置书写文字.
 class ArmController {
@@ -21,13 +20,13 @@ public:
 
     /// 落笔, 可以反复调用此方法来控制笔的强度.
     /// \param strength 落笔强度, 范围为 0~1, 超过范围的将自动取边界.
-    void dropPen(double strength);
+    void dropPen(double strength) const;
 
     /// 提笔.
-    void liftPen();
+    void liftPen() const;
 
     /// 把笔移动到纸面 xy 坐标.
-    void movePen(double x, double y);
+    void movePen(double x, double y) const;
 };
 
 

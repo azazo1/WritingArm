@@ -147,8 +147,8 @@ void NetAdapter::messageCallback(
     }
     const String type = doc["type"];
     const JsonVariant args = doc["args"];
-    Serial.print("Get cmd type: ");
-    Serial.println(type);
+    // Serial.print("Get cmd type: ");
+    // Serial.println(type);
     JsonDocument respondDoc;
     if (type == TYPE_LIFT_PEN) {
         arm->liftPen();
@@ -201,8 +201,8 @@ void NetAdapter::messageCallback(
     String rst;
     serializeJson(respondDoc, rst);
     client.send(rst);
-    Serial.print("Respond: ");
-    Serial.println(rst);
+    // Serial.print("Respond: ");
+    // Serial.println(rst);
 }
 
 String NetAdapter::ip() const {
