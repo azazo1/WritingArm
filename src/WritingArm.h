@@ -15,9 +15,9 @@ constexpr double MAX_R = sqrt(MAX_RZ_SQUARES); // z 坐标为 0 时的使 alpha 
 
 /// 写字机械臂三个舵机的驱动类, 负责写字机械臂的一些基础移动行为.
 class WritingArm {
-    static constexpr double THETA_DELAY_FACTOR = 30;
-    static constexpr double ALPHA_DELAY_FACTOR = 5;
-    static constexpr double BETA_DELAY_FACTOR = 3;
+    static constexpr double THETA_DELAY_FACTOR = 20;
+    static constexpr double ALPHA_DELAY_FACTOR = 20;
+    static constexpr double BETA_DELAY_FACTOR = 20;
     /// r 过大时, z 实际坐标和理论坐标会相差较大, 即动臂会下垂, 加此参数修正, 此参数是反复测试得来.
     /// 此参数越大, 末端补偿越大.
     static constexpr double Z_COMPENSATION_FACTOR = 20;

@@ -127,7 +127,7 @@ void NetAdapter::poll() {
     }
     for (int i = 0; i < clients.size(); ++i) {
         websockets::WebsocketsClient &client = clients.at(i);
-        if (!client.available(true)) {
+        if (!client.available()) {
             client.close();
             clients.erase(clients.begin() + i);
         }
@@ -168,7 +168,21 @@ void NetAdapter::messageCallback(
             respondDoc["code"] = RESPOND_CODE_OK;
         }
     } else if (type == TYPE_ACTION_SEQUENCE) {
-        // todo
+        // actions 是个列表, 每项是个 action, action 有三个元素 x, y, pressure; pressure 为 0 时表示起笔.
+        if (args.isNull() || args["actions"].isNull()) {
+            respondDoc["code"] = RESPOND_CODE_ERROR;
+        } else {
+            JsonArray actions = args["actions"];
+            std::vector<double> sequence;
+            sequence.reserve(actions.size() * 3);
+            for (JsonArray action: actions) {
+                for (double v: action) {
+                    sequence.push_back(v);
+                }
+            }
+            arm->drawActionSequence(std::move(sequence), *scheduler);
+            respondDoc["code"] = RESPOND_CODE_OK;
+        }
     } else if (type == TYPE_AP_MODE) {
         if (args.isNull() || args["ssid"].isNull() || args["pwd"].isNull()) {
             respondDoc["code"] = RESPOND_CODE_ERROR;
