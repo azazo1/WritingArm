@@ -118,7 +118,11 @@ void NetAdapter::poll() {
         }
         if (strcmp(buffer, "ping") == 0) {
             broadcastServer->beginPacket();
-            const String respond = String("pong") + port;
+            String portStr = String() + port;
+            if (portStr.length() < 5) {
+                portStr = "0" + portStr;
+            }
+            const String respond = String("pong") + portStr;
             const auto respond_c_str = reinterpret_cast<const uint8_t *>(respond.c_str());
             broadcastServer->write(respond_c_str, respond.length());
             broadcastServer->endPacket();
