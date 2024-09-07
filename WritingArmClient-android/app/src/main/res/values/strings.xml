@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">WritingArmClient-android</string>
+    <string name="title_activity_pen">PenActivity</string>
+    <string name="record">Record</string>
+    <string name="cancel">Cancel</string>
+    <string name="stop">Stop</string>
+    <string name="send">Send</string>
+    <string name="send_to_scm">Send this action sequence to SCM?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">Ok</string>
+    <string name="network">Network</string>
+    <string name="client_disconnected">Client disconnected.</string>
+    <string name="connecting">Connecting…</string>
+    <string name="wait">Wait</string>
+    <string name="port">Port</string>
+    <string name="ip">IP</string>
+    <string name="discover">Discover</string>
+    <string name="connect">Connect</string>
+    <string name="discovering">Discovering…</string>
+    <string name="title_activity_mode_selecting">ModeSelectingActivity</string>
+    <string name="pen_drawing">Pen Drawing</string>
+    <string name="title_activity_scm_network_config">ScmNetworkConfigActivity</string>
+    <string name="password">Password</string>
+    <string name="ssid">SSID</string>
+    <string name="ap">Mode AP</string>
+    <string name="sta">Mode STA</string>
+    <string name="confirm">Confirm</string>
+    <string name="scm_network_config">SCM Network Config</string>
+    <string name="failed">Failed</string>
+</resources>
