@@ -228,9 +228,9 @@ String NetAdapter::ip() const {
         return "";
     }
     if (*ap) {
-        return WiFi.softAPIP().toString();
+        return String() + port + "/" + WiFi.softAPIP().toString();
     }
-    return WiFi.localIP().toString();
+    return String() + port + "/" + WiFi.localIP().toString();
 }
 
 void NetAdapter::setOnServerStartCallback(std::function<void()> cb) {

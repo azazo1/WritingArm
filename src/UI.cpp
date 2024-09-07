@@ -15,14 +15,14 @@ UI::UI(view::Screen *screen): screen(screen) {
 void UI::buildMain() {
     mainFrame.addChild(&mainTs);
 
-    mainTs.addItem("Network");
     mainTs.addItem("Arm Adjusting");
+    mainTs.addItem("Network");
 
     mainTs.setOnConfirmListener([this](const size_t idx) {
         if (idx == 0) {
-            screen->pushRootView(&networkFrame);
-        } else if (idx == 1) {
             screen->pushRootView(&armAdjustingFrame);
+        } else if (idx == 1) {
+            screen->pushRootView(&networkFrame);
         }
     });
     screen->pushRootView(&mainFrame);
