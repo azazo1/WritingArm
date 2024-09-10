@@ -41,6 +41,12 @@ WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
 ArmController controller(&arm);
 NetAdapter netAdapter(&controller, SERVER_PORT, &scheduler);
 
+struct ArmInstruction {
+    double x;
+    double y;
+    bool lift;
+};
+
 void setup() {
     Serial.begin(9600);
 
