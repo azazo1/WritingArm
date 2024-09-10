@@ -49,7 +49,6 @@ struct ArmInstruction {
 };
 
 void onInstruction(const uint8_t *max_addr, const uint8_t *data, int data_len) {
-    Serial.println("Get ESP_NOW");
     const auto ins = reinterpret_cast<const ArmInstruction *>(data);
     controller.movePen(ins->x, ins->y);
     if (ins->strength < 0.1) {
@@ -64,8 +63,11 @@ void setup() {
 
     WiFiClass::mode(WIFI_MODE_STA);
 
-    esp_now_init();
-    esp_now_register_recv_cb(onInstruction);
+    if (esp_now_init() != ESP_OK) {
+        Serial.println("Error initializing esp-now");
+    } else {
+        esp_now_register_recv_cb(onInstruction);
+    }
 
     controller.movePen(50, 50);
     controller.liftPen();
