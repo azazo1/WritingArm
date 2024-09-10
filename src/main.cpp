@@ -24,9 +24,10 @@
 #define KNOB_PIN_B 4
 #define BUTTON_PIN 16
 
-#define JOYSTICK_VRX_PIN 25
-#define JOYSTICK_VRY_PIN 26
-#define JOYSTICK_SW_PIN 27
+// error: adc2 不能和 wifi 一起使用. 只能使用 adc1 的 pin 口.
+#define JOYSTICK_VRX_PIN 33
+#define JOYSTICK_VRY_PIN 32
+#define JOYSTICK_SW_PIN 35
 
 #define SERVER_PORT 13300
 
@@ -98,8 +99,21 @@ void setup() {
         }));
 
     scheduler.addSchedule(new SchedulableFromLambda([](mtime_t) {
-        Serial.println(String("x: ") + js.getX() + " y: " + js.getY() + " p: " + js.isPressed());
-        // error: adc2 不能和 wifi 一起使用.
+        // Serial.println(String("x: ") + js.getX() + " y: " + js.getY() + " p: " + js.isPressed());
+        double x = arm.getX() + 0.4 * js.getX();
+        double y = arm.getY() + 0.4 * js.getY();
+
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x > PAPER_WIDTH) x = PAPER_WIDTH;
+        if (y > PAPER_HEIGHT) y = PAPER_HEIGHT;
+
+        controller.movePen(x, y);
+        // if (js.isPressed()) {
+            // controller.dropPen(0);
+        // } else {
+            // controller.liftPen();
+        // }
         return true;
     }));
 

@@ -10,12 +10,16 @@ class JoyStick {
     const int pinX;
     const int pinY;
     const int pinSW;
+
+    static constexpr int MAX_ENDURANCE = 5;
+    int currentEndurance = 0;
+
 public:
     JoyStick(int pinX, int pinY, int pinSW);
 
-    double getX();
+    int getX();
 
-    double getY();
+    int getY();
 
     bool isPressed();
 };

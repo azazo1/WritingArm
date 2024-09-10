@@ -10,14 +10,37 @@ JoyStick::JoyStick(int pinX, int pinY, int pinSW): pinX(pinX), pinY(pinY), pinSW
     pinMode(pinSW, INPUT);
 }
 
-double JoyStick::getX() {
-    return 2.0 * analogRead(pinX) / 256 - 0.5;
+int JoyStick::getX() {
+    const int val = analogRead(pinX);
+    if (val < 1000) {
+        return -1;
+    }
+    if (val > 4000) {
+        return 1;
+    }
+    return 0;
 }
 
-double JoyStick::getY() {
-    return 2.0 * analogRead(pinY) / 256 - 0.5;
+int JoyStick::getY() {
+    const int val = analogRead(pinY);
+    if (val < 1000) {
+        return -1;
+    }
+    if (val > 4000) {
+        return 1;
+    }
+    return 0;
 }
 
 bool JoyStick::isPressed() {
-    return !digitalRead(pinSW);
+    const bool cond = !digitalRead(pinSW);
+    if (cond) {
+        if (currentEndurance > MAX_ENDURANCE) {
+            return true;
+        }
+        currentEndurance++;
+    } else {
+        currentEndurance = 0;
+    }
+    return false;
 }
