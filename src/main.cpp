@@ -9,6 +9,7 @@
 #include <sche/SchedulableButtonEvent.h>
 #include <sche/SchedulableKnobEvent.h>
 #include <esp_now.h>
+#include <JoyStick.h>
 
 #include "view/Screen.h"
 #include "Knob.h"
@@ -22,6 +23,10 @@
 #define KNOB_PIN_A 15
 #define KNOB_PIN_B 4
 #define BUTTON_PIN 16
+
+#define JOYSTICK_VRX_PIN 25
+#define JOYSTICK_VRY_PIN 26
+#define JOYSTICK_SW_PIN 27
 
 #define SERVER_PORT 13300
 
@@ -41,6 +46,8 @@ UI ui(&screen);
 WritingArm arm(SERVO_A_PIN, SERVO_B_PIN, SERVO_C_PIN);
 ArmController controller(&arm);
 NetAdapter netAdapter(&controller, SERVER_PORT, &scheduler);
+
+JoyStick js(JOYSTICK_VRX_PIN, JOYSTICK_VRY_PIN, JOYSTICK_SW_PIN);
 
 struct ArmInstruction {
     double x;
@@ -89,6 +96,12 @@ void setup() {
             screen.dispatchEvent(ButtonEvent(screen, static_cast<int>(pressedDuration)));
             return screen.isAlive();
         }));
+
+    scheduler.addSchedule(new SchedulableFromLambda([](mtime_t) {
+        Serial.println(String("x: ") + js.getX() + " y: " + js.getY() + " p: " + js.isPressed());
+        // error: adc2 不能和 wifi 一起使用.
+        return true;
+    }));
 
     ui.build(arm, netAdapter);
 }
