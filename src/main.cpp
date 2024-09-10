@@ -8,6 +8,7 @@
 #include <sche/ScalaTransition.h>
 #include <sche/SchedulableButtonEvent.h>
 #include <sche/SchedulableKnobEvent.h>
+#include <esp_now.h>
 
 #include "view/Screen.h"
 #include "Knob.h"
@@ -44,17 +45,30 @@ NetAdapter netAdapter(&controller, SERVER_PORT, &scheduler);
 struct ArmInstruction {
     double x;
     double y;
-    bool lift;
+    double strength;
 };
+
+void onInstruction(const uint8_t *max_addr, const uint8_t *data, int data_len) {
+    Serial.println("Get ESP_NOW");
+    const auto ins = reinterpret_cast<const ArmInstruction *>(data);
+    controller.movePen(ins->x, ins->y);
+    if (ins->strength < 0.1) {
+        controller.liftPen();
+    } else {
+        controller.dropPen(ins->strength);
+    }
+}
 
 void setup() {
     Serial.begin(9600);
 
+    WiFiClass::mode(WIFI_MODE_STA);
+
+    esp_now_init();
+    esp_now_register_recv_cb(onInstruction);
+
     controller.movePen(50, 50);
     controller.liftPen();
-
-    // 默认不开启网络模式.
-    // netAdapter.modeAP(DEFAULT_AP_SSID, DEFAULT_AP_PWD);
 
     screen.attachToScheduler(&scheduler);
     display.init();

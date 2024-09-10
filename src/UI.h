@@ -47,6 +47,9 @@ class UI {
     view::LabeledFrame ipFrame = view::LabeledFrame("IP Address");
     view::TextView ipText = view::TextView("null");
 
+    view::LabeledFrame macFrame = view::LabeledFrame("MAC Address");
+    view::TextView macText = view::TextView(WiFi.macAddress());
+
     view::LabeledFrame modeAPFrame = view::LabeledFrame("Mode AP");
     view::TextSelector apTs = view::TextSelector();
 
@@ -102,7 +105,7 @@ class UI {
     void buildTRZ(WritingArm &arm);
 
     /// 把一个任务通过 scheduler 推迟到一定时间后运行.
-    void postDelay(sche::mtime_t delay, const std::function<void()>& action) const;
+    void postDelay(sche::mtime_t delay, const std::function<void()> &action) const;
 
 public:
     /// 创建 UI 对象.

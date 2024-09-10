@@ -38,6 +38,7 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
     pref0.end();
     networkFrame.addChild(&networkTs);
 
+    networkTs.addItem("MAC Address");
     networkTs.addItem("IP");
     networkTs.addItem("Mode AP");
     networkTs.addItem("Mode STA");
@@ -46,6 +47,10 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
     networkTs.setOnConfirmListener([this, &netAdapter](const size_t idx) {
         switch (idx) {
             case 0: {
+                screen->pushRootView(&macFrame);
+            }
+            break;
+            case 1: {
                 const bool *ap = netAdapter.getMode();
                 String prefix = "null/";
                 if (ap != nullptr) {
@@ -59,7 +64,7 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
                 screen->pushRootView(&ipFrame);
             }
             break;
-            case 1: {
+            case 2: {
                 editingAP = true;
                 Preferences pref;
                 pref.begin(ARM_PREF_NAMESPACE);
@@ -69,7 +74,7 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
                 screen->pushRootView(&modeAPFrame);
             }
             break;
-            case 2: {
+            case 3: {
                 editingAP = false;
                 Preferences pref;
                 pref.begin(ARM_PREF_NAMESPACE);
@@ -79,7 +84,7 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
                 screen->pushRootView(&modeSTAFrame);
             }
             break;
-            case 3: {
+            case 4: {
                 // 恢复出厂设置.
                 Preferences pref1;
                 pref1.begin(ARM_PREF_NAMESPACE);
@@ -91,6 +96,8 @@ void UI::buildNetwork(NetAdapter &netAdapter) {
             default: ;
         }
     });
+
+    macFrame.addChild(&macText);
 
     ipFrame.addChild(&ipText);
 
